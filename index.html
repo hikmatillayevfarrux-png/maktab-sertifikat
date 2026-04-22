@@ -1,118 +1,99 @@
-<!DOCTYPE html><html lang="uz">
+<!DOCTYPE html>
+<html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pro Sertifikat Platforma</title>
-  <style>
-    body{
-      font-family: Arial;
-      background:#0f172a;
-      color:white;
-      text-align:center;
-      padding:20px;
-    }
-    .box{
-      background:#1e293b;
-      padding:20px;
-      border-radius:15px;
-      max-width:500px;
-      margin:auto;
-    }
-    input{
-      padding:10px;
-      width:80%;
-      margin:10px 0;
-      border-radius:8px;
-      border:none;
-    }
-    button{
-      padding:10px 15px;
-      border:none;
-      border-radius:8px;
-      background:#38bdf8;
-      color:black;
-      font-weight:bold;
-      cursor:pointer;
-      margin:5px;
-    }
-    .cert{
-      margin-top:20px;
-      padding:20px;
-      border:2px dashed white;
-      border-radius:10px;
-      display:none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sertifikat Tizimi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .verify-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px dashed #28a745; display: none; }
+        canvas { display: none; }
+    </style>
 </head>
-<body><h1>🎓 Pro Sertifikat Platforma</h1><div class="box">
-  <input type="text" id="name" placeholder="Ismingizni yozing" />
-  <br>
-  <button onclick="startTest()">Testni boshlash</button>  <div id="testBox" style="display:none;">
-    <h3 id="q"></h3>
-    <div id="opts"></div>
-  </div>  <div class="cert" id="cert">
-    <h2>🎉 Sertifikat</h2>
-    <p>Bu sertifikat quyidagi shaxsga berildi:</p>
-    <h3 id="certName"></h3>
-    <p id="score"></p>
-    <button onclick="downloadCert()">Download</button>
-  </div>
-</div><script>
-const questions = [
-  {
-    q:"AI nima?",
-    options:["Sun’iy intellekt","Telefon","O‘yin"],
-    a:0
-  },
-  {
-    q:"HTML nima?",
-    options:["Til","O‘yin","Video"],
-    a:0
-  }
-];
+<body>
 
-let current=0;
-let score=0;
+<div class="card">
+    <h2 style="color: #1a73e8;">Sertifikatni olish</h2>
+    <input type="text" id="studentID" placeholder="ID raqamingizni kiriting">
+    <button onclick="checkID()">Tekshirish</button>
+    
+    <div id="verifyBox" class="verify-box">
+        <h3 id="stName" style="margin: 0; color: #333;"></h3>
+        <p style="font-size: 14px; color: #666; margin-top: 10px;">Ma'lumotlar topildi.</p>
+        <button onclick="generateAndDownload()" style="background: #28a745">Yuklab olish (PNG)</button>
+    </div>
+</div>
 
-function startTest(){
-  document.getElementById("testBox").style.display="block";
-  showQ();
+<canvas id="certCanvas"></canvas>
+
+<script>
+let foundUser = null;
+
+async function checkID() {
+    const idVal = document.getElementById('studentID').value;
+    try {
+        const resp = await fetch('ReportStudentList.xlsx'); //
+        const data = await resp.arrayBuffer();
+        const wb = XLSX.read(data, {type: 'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        foundUser = rows.find(r => String(r['ID']) === idVal);
+
+        if(foundUser) {
+            document.getElementById('stName').innerText = foundUser['Полное наименование']; //
+            document.getElementById('verifyBox').style.display = 'block';
+        } else {
+            alert("ID topilmadi!");
+        }
+    } catch (e) {
+        alert("Excel faylini o'qib bo'lmadi!");
+    }
 }
 
-function showQ(){
-  let q=questions[current];
-  document.getElementById("q").innerText=q.q;
-  let html="";
-  q.options.forEach((o,i)=>{
-    html+=`<button onclick="ans(${i})">${o}</button><br>`;
-  });
-  document.getElementById("opts").innerHTML=html;
+function generateAndDownload() {
+    const canvas = document.getElementById('certCanvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    // GitHub-dagi rasm nomi
+    img.src = 'IMG_20260422_191321_972.jpg'; 
+    img.crossOrigin = "anonymous";
+
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        // --- ESKI ISMNI BUTUNLAY TOZALASH ---
+        // Bu joy oq bo'lgani uchun oq rang bilan yopamiz
+        ctx.fillStyle = '#ffffff'; 
+        // x=105, y=320, kenglik=520, balandlik=100
+        ctx.fillRect(105, 320, 520, 100); 
+
+        // --- YANGI ISMNI YOZISH ---
+        ctx.font = '500 46px Arial'; 
+        ctx.fillStyle = '#1e272e'; 
+        ctx.textAlign = 'left';
+        // Ismni o'sha tozalangan joyning o'rtasiga yozamiz
+        ctx.fillText(foundUser['Полное наименование'], 110, 375); 
+        
+        // --- SANANI YOZISH ---
+        ctx.font = '22px Arial';
+        ctx.fillStyle = '#636e72';
+        // Sanani logotipdan pastroqqa suramiz
+        ctx.fillText("Apr 22, 2026", 110, 315); 
+
+        // Yuklab olish jarayoni
+        const link = document.createElement('a');
+        link.download = foundUser['Полное наименование'] + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
 }
-
-function ans(i){
-  if(i===questions[current].a) score++;
-  current++;
-
-  if(current<questions.length){
-    showQ();
-  }else{
-    showCert();
-  }
-}
-
-function showCert(){
-  document.getElementById("testBox").style.display="none";
-  document.getElementById("cert").style.display="block";
-
-  let name=document.getElementById("name").value;
-  document.getElementById("certName").innerText=name;
-  document.getElementById("score").innerText="Natija: "+score+"/"+questions.length;
-}
-
-function downloadCert(){
-  let printWindow=window.open('','');
-  printWindow.document.write(document.getElementById("cert").innerHTML);
-  printWindow.print();
-}
-</script></body>
+</script>
+</body>
 </html>
