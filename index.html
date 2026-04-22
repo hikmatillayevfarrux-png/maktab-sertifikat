@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maktab Sertifikat Tizimi</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; width: 100%; }
-        #result { margin-top: 20px; font-weight: bold; color: green; }
+        body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
+        #result { margin-top: 20px; }
+        .status-msg { color: #007bff; font-weight: bold; }
+        .verify-box { background: #e3f2fd; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed #007bff; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Sertifikatni olish</h2>
+        <h2 style="color: #2c3e50;">Sertifikatni olish</h2>
         <p>ID raqamingizni kiriting:</p>
         <input type="text" id="studentID" placeholder="Masalan: 12345">
         <button onclick="checkID()">Tekshirish</button>
@@ -25,10 +27,32 @@
         function checkID() {
             let id = document.getElementById('studentID').value;
             let res = document.getElementById('result');
+            
             if(id) {
-                res.innerHTML = "ID " + id + " topildi! Emailnator orqali kod yuborilmoqda...";
+                res.innerHTML = "<p class='status-msg'>Baza tekshirilmoqda...</p>";
+                
+                // 1.5 soniyadan keyin Emailnator kodini so'rash oynasini chiqaradi
+                setTimeout(() => {
+                    res.innerHTML = `
+                        <div class="verify-box">
+                            <p style="margin-top:0">Pochtangizga (Emailnator) tasdiqlash kodi yuborildi.</p>
+                            <input type="text" id="otpCode" placeholder="6 xonali kodni kiriting">
+                            <button onclick="finalVerify()" style="background: #28a745">Tasdiqlash va Yuklash</button>
+                        </div>
+                    `;
+                }, 1500);
             } else {
-                alert("Iltimos ID kiriting");
+                alert("Iltimos, ID raqamingizni kiriting!");
+            }
+        }
+
+        function finalVerify() {
+            let otp = document.getElementById('otpCode').value;
+            if(otp.length >= 4) {
+                alert("Sertifikat muvaffaqiyatli tasdiqlandi! Yuklanmoqda...");
+                // Keyingi bosqichda shu yerda haqiqiy rasm chiqadi
+            } else {
+                alert("Xato kod kiritildi!");
             }
         }
     </script>
