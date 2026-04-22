@@ -3,58 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maktab Sertifikat Tizimi</title>
+    <title>Sertifikat Tekshirish Tizimi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
-        #result { margin-top: 20px; }
-        .status-msg { color: #007bff; font-weight: bold; }
-        .verify-box { background: #e3f2fd; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed #007bff; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        #loader { display: none; margin-top: 15px; color: #555; }
+        .result-box { margin-top: 20px; padding: 15px; border-radius: 10px; background: #f8f9fa; display: none; border-left: 5px solid #28a745; text-align: left; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2 style="color: #2c3e50;">Sertifikatni olish</h2>
-        <p>ID raqamingizni kiriting:</p>
-        <input type="text" id="studentID" placeholder="Masalan: 12345">
-        <button onclick="checkID()">Tekshirish</button>
-        <div id="result"></div>
+
+<div class="card">
+    <h2 style="color: #1a73e8;">Sertifikatni olish</h2>
+    <p style="color: #666;">ID raqamingizni kiriting:</p>
+    <input type="text" id="studentID" placeholder="Masalan: 12345">
+    <button onclick="processData()">Tekshirish</button>
+    
+    <div id="loader">Baza tekshirilmoqda...</div>
+    
+    <div id="result" class="result-box">
+        <b id="studentName"></b><br>
+        <span id="studentClass"></span><br><br>
+        <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; font-size: 14px;">
+            📧 Emailnator orqali tasdiqlash kodi yuborildi.
+        </div>
+        <input type="text" id="otp" placeholder="Kodni kiriting" style="margin-top:10px">
+        <button onclick="alert('Sertifikat tayyorlanmoqda!')" style="background: #28a745">Yuklab olish</button>
     </div>
+</div>
 
-    <script>
-        function checkID() {
-            let id = document.getElementById('studentID').value;
-            let res = document.getElementById('result');
-            
-            if(id) {
-                res.innerHTML = "<p class='status-msg'>Baza tekshirilmoqda...</p>";
-                
-                // 1.5 soniyadan keyin Emailnator kodini so'rash oynasini chiqaradi
-                setTimeout(() => {
-                    res.innerHTML = `
-                        <div class="verify-box">
-                            <p style="margin-top:0">Pochtangizga (Emailnator) tasdiqlash kodi yuborildi.</p>
-                            <input type="text" id="otpCode" placeholder="6 xonali kodni kiriting">
-                            <button onclick="finalVerify()" style="background: #28a745">Tasdiqlash va Yuklash</button>
-                        </div>
-                    `;
-                }, 1500);
-            } else {
-                alert("Iltimos, ID raqamingizni kiriting!");
-            }
-        }
+<script>
+async function processData() {
+    const idInput = document.getElementById('studentID').value;
+    const loader = document.getElementById('loader');
+    const resultBox = document.getElementById('result');
+    
+    if(!idInput) return alert("ID kiriting!");
 
-        function finalVerify() {
-            let otp = document.getElementById('otpCode').value;
-            if(otp.length >= 4) {
-                alert("Sertifikat muvaffaqiyatli tasdiqlandi! Yuklanmoqda...");
-                // Keyingi bosqichda shu yerda haqiqiy rasm chiqadi
+    loader.style.display = "block";
+    resultBox.style.display = "none";
+
+    try {
+        // Excel faylingizni o'qish (Fayl nomi GitHub'dagidek bo'lishi shart)
+        const response = await fetch('ReportStudentList.xlsx');
+        const data = await response.arrayBuffer();
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+
+        // ID bo'yicha qidirish (A ustun - ID)
+        const student = rows.find(r => String(r['ID']) === idInput);
+
+        setTimeout(() => {
+            loader.style.display = "none";
+            if(student) {
+                resultBox.style.display = "block";
+                document.getElementById('studentName').innerText = student['Полное наименование'];
+                document.getElementById('studentClass').innerText = "Sinf: " + student['Класс'];
             } else {
-                alert("Xato kod kiritildi!");
+                alert("Bunday ID topilmadi!");
             }
-        }
-    </script>
+        }, 1000);
+
+    } catch (error) {
+        loader.style.display = "none";
+        alert("Excel faylini o'qishda xatolik! Fayl nomi to'g'riligini tekshiring.");
+    }
+}
+</script>
+
 </body>
 </html>
