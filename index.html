@@ -3,32 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sertifikat Yuklash Tizimi</title>
+    <title>Sertifikat Yuklash</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        h2 { color: #2c3e50; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: #3498db; outline: none; }
-        button { width: 100%; padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #2980b9; }
-        .result-box { margin-top: 25px; padding: 20px; background-color: #ebf5fb; border-radius: 10px; border: 2px dashed #3498db; display: none; }
-        #stName { color: #2980b9; margin-bottom: 15px; }
-        canvas { display: none; } /* Rasm generatsiya bo'lganda ko'rinmasligi uchun */
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        .verify-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px dashed #28a745; display: none; }
+        canvas { display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Sertifikatni olish</h2>
-    <p style="color: #7f8c8d; font-size: 14px;">ID raqamingizni kiriting va tekshiring</p>
-    <input type="text" id="studentID" placeholder="Masalan: 5482043">
+    <h2 style="color: #1a73e8;">Sertifikatni olish</h2>
+    <input type="text" id="studentID" placeholder="ID raqamingiz">
     <button onclick="checkID()">Tekshirish</button>
     
-    <div id="resultBox" class="result-box">
-        <h3 id="stName"></h3>
-        <button onclick="generateAndDownload()" style="background-color: #27ae60;">Sertifikatni Yuklash (PNG)</button>
+    <div id="verifyBox" class="verify-box">
+        <h3 id="stName" style="margin: 0; color: #333;"></h3>
+        <p style="font-size: 14px; color: #666; margin: 10px 0;">Ma'lumotlar tasdiqlandi.</p>
+        <button onclick="generateAndDownload()" style="background: #28a745">Sertifikatni yuklash</button>
     </div>
 </div>
 
@@ -37,78 +34,61 @@
 <script>
 let foundUser = null;
 
-// ID raqamini Exceldan qidirish
 async function checkID() {
     const idVal = document.getElementById('studentID').value;
-    if(!idVal) return alert("Iltimos, ID raqamni kiriting!");
-
     try {
-        const resp = await fetch('ReportStudentList.xlsx'); //
+        const resp = await fetch('ReportStudentList.xlsx');
         const data = await resp.arrayBuffer();
         const wb = XLSX.read(data, {type: 'array'});
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet);
-
-        // Exceldagi 'ID' ustunidan qidirish
         foundUser = rows.find(r => String(r['ID']) === idVal);
 
         if(foundUser) {
             document.getElementById('stName').innerText = foundUser['Полное наименование'];
-            document.getElementById('resultBox').style.display = 'block';
+            document.getElementById('verifyBox').style.display = 'block';
         } else {
-            alert("Bunday ID raqami topilmadi!");
-            document.getElementById('resultBox').style.display = 'none';
+            alert("ID topilmadi!");
         }
     } catch (e) {
-        console.error(e);
-        alert("Xatolik: Excel faylini yuklashda muammo bo'ldi.");
+        alert("Fayl yuklashda xato!");
     }
 }
 
-// Sertifikatni generatsiya qilish va yuklash
 function generateAndDownload() {
     const canvas = document.getElementById('certCanvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
-    // GitHub'ga yuklangan rasm nomi
     img.src = 'IMG_20260422_191321_972.jpg'; 
     img.crossOrigin = "anonymous";
 
     img.onload = function() {
-        // Canvas o'lchamini rasmga moslash
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         
-        // --- 1. ESKI ISMNI O'CHIRISH (Oq rang bilan yopish) ---
-        ctx.fillStyle = 'white'; 
-        // Farruxjon yozuvi turgan joyni aniq oq kvadrat bilan yopamiz
-        // Koordinatalar: x=105, y=315, kenglik=500, balandlik=90
-        ctx.fillRect(105, 315, 500, 95); 
+        // --- NATURAL TOZALASH ---
+        // Rasmning bo'sh (toza) qismidan nusxa olib, eski ism ustiga qo'yamiz.
+        // Bu usul oq rangni rasmning o'ziga 100% moslashtiradi.
+        ctx.drawImage(img, 100, 450, 500, 100, 105, 315, 500, 100);
 
-        // --- 2. YANGI ISMNI YOZISH ---
+        // --- ISMNI YOZISH ---
         ctx.font = '500 46px "Segoe UI", Arial'; 
         ctx.fillStyle = '#1e272e'; 
         ctx.textAlign = 'left';
-        
-        // Yangi ismni bo'sh joyga tushirish (y=365 koordinata)
         ctx.fillText(foundUser['Полное наименование'], 110, 365);
         
-        // --- 3. SANANI YOZISH ---
+        // --- SANANI YOZISH ---
         ctx.font = '20px Arial';
         ctx.fillStyle = '#636e72';
         ctx.fillText("Apr 22, 2026", 110, 310); 
 
-        // Faylni avtomat yuklab olish
+        // Yuklab olish
         const link = document.createElement('a');
-        link.download = foundUser['Полное наименование'] + '_Sertifikat.png';
+        link.download = foundUser['Полное наименование'] + '.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
-    };
-
-    img.onerror = function() {
-        alert("Xato: Sertifikat shabloni topilmadi. Rasm nomini tekshiring.");
     };
 }
 </script>
