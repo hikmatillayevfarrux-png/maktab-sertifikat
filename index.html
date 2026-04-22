@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maktab Sertifikat Tizimi</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; width: 100%; }
+        #result { margin-top: 20px; font-weight: bold; color: green; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Sertifikatni olish</h2>
+        <p>ID raqamingizni kiriting:</p>
+        <input type="text" id="studentID" placeholder="Masalan: 12345">
+        <button onclick="checkID()">Tekshirish</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function checkID() {
+            let id = document.getElementById('studentID').value;
+            let res = document.getElementById('result');
+            if(id) {
+                res.innerHTML = "ID " + id + " topildi! Emailnator orqali kod yuborilmoqda...";
+            } else {
+                alert("Iltimos ID kiriting");
+            }
+        }
+    </script>
+</body>
+</html>
