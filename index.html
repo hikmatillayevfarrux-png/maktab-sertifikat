@@ -3,83 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sertifikat Tizimi</title>
+    <title>Sertifikat Yuklash</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; width: 90%; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; }
-        .verify-box { background: #e3f2fd; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed #007bff; }
-        canvas { display: none; } /* Sertifikat yashirincha tayyorlanadi */
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        .result-box { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 10px; display: none; }
+        canvas { display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Sertifikatni olish</h2>
-    <p>ID raqamingizni kiriting:</p>
-    <input type="text" id="studentID" placeholder="Masalan: 1341036">
-    <button onclick="checkID()">Tekshirish</button>
+    <h2>Maktab Sertifikati</h2>
+    <input type="text" id="studentID" placeholder="ID raqamingizni kiriting">
+    <button onclick="findStudent()">Sertifikatni topish</button>
     
-    <div id="result"></div>
-    <canvas id="certCanvas" width="800" height="600"></canvas>
+    <div id="resultBox" class="result-box">
+        <p id="displayName" style="font-weight: bold; color: #333;"></p>
+        <p style="font-size: 14px; color: #666;">Pochtangizga tasdiqlash kodi yuborildi.</p>
+        <input type="text" id="otp" placeholder="Kodni kiriting">
+        <button onclick="downloadCert()" style="background: #28a745;">Yuklab olish</button>
+    </div>
 </div>
 
-<script>
-let foundStudent = null;
+<canvas id="certCanvas"></canvas>
 
-async function checkID() {
-    const idInput = document.getElementById('studentID').value;
-    const res = document.getElementById('result');
-    
+<script>
+let currentStudent = null;
+
+async function findStudent() {
+    const id = document.getElementById('studentID').value;
+    if(!id) return alert("ID kiriting!");
+
     try {
-        const response = await fetch('ReportStudentList.xlsx');
-        const data = await response.arrayBuffer();
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const resp = await fetch('ReportStudentList.xlsx');
+        const data = await resp.arrayBuffer();
+        const wb = XLSX.read(data, {type: 'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet);
 
-        foundStudent = rows.find(r => String(r['ID']) === idInput);
+        // A ustunidagi ID va B ustunidagi ismni tekshirish
+        currentStudent = rows.find(r => String(r['ID']) === id);
 
-        if(foundStudent) {
-            res.innerHTML = `
-                <div class="verify-box">
-                    <p><b>${foundStudent['Полное наименование']}</b></p>
-                    <p>Pochtangizga kod yuborildi.</p>
-                    <input type="text" id="otpCode" placeholder="6 xonali kod">
-                    <button onclick="generateCert()" style="background: #28a745">Tasdiqlash va Yuklash</button>
-                </div>`;
+        if(currentStudent) {
+            document.getElementById('displayName').innerText = currentStudent['Полное наименование'];
+            document.getElementById('resultBox').style.display = 'block';
         } else {
-            alert("ID topilmadi!");
+            alert("Bunday ID topilmadi!");
         }
     } catch (e) {
-        alert("Excel fayli topilmadi yoki xato!");
+        alert("Fayllarni yuklashda xato!");
     }
 }
 
-function generateCert() {
+function downloadCert() {
     const canvas = document.getElementById('certCanvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
-    // BU YERGA: Sertifikat shabloni rasm havolasini qo'ying
-    img.src = 'https://img.freepik.com/free-vector/professional-certificate-template_23-2148914144.jpg'; 
+    // Siz yuklagan rasm nomi
+    img.src = 'IMG_20260422_191321.jpg'; 
     
     img.onload = function() {
-        ctx.drawImage(img, 0, 0, 800, 600);
-        ctx.font = 'bold 30px sans-serif';
-        ctx.fillStyle = '#1a1a1a';
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        // Ismni yozish (Rasm o'lchamiga qarab joyini to'g'irlaymiz)
+        ctx.font = 'bold 40px Arial';
+        ctx.fillStyle = '#2c3e50';
         ctx.textAlign = 'center';
         
-        // Ismni rasmning o'rtasiga yozish
-        ctx.fillText(foundStudent['Полное наименование'], 400, 300);
-        ctx.font = '20px sans-serif';
-        ctx.fillText("Sinf: " + foundStudent['Класс'], 400, 350);
-
-        // Yuklab olish
+        // Rasmning o'rtasiga ismni yozish
+        ctx.fillText(currentStudent['Полное наименование'], canvas.width / 2.8, canvas.height / 2.3);
+        
         const link = document.createElement('a');
-        link.download = 'Sertifikat_' + foundStudent['ID'] + '.png';
+        link.download = 'Sertifikat.png';
         link.href = canvas.toDataURL();
         link.click();
     };
