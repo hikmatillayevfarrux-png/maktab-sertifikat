@@ -9,9 +9,8 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #0056b3; }
-        .verify-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px dashed #007bff; display: none; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
+        .verify-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px dashed #28a745; display: none; }
         canvas { display: none; }
     </style>
 </head>
@@ -19,13 +18,12 @@
 
 <div class="card">
     <h2 style="color: #1a73e8;">Sertifikatni olish</h2>
-    <input type="text" id="studentID" placeholder="ID raqamingiz">
+    <input type="text" id="studentID" placeholder="ID raqamingizni kiriting">
     <button onclick="checkID()">Tekshirish</button>
     
     <div id="verifyBox" class="verify-box">
-        <h3 id="stName" style="margin: 0; color: #333;"></h3>
-        <p style="font-size: 14px; color: #666;">Tasdiqlash kodi yuborildi.</p>
-        <input type="text" id="otp" placeholder="6 xonali kod">
+        <h3 id="stName" style="margin-bottom: 10px; color: #333;"></h3>
+        <input type="text" id="otp" placeholder="Tasdiqlash kodi">
         <button onclick="generateAndDownload()" style="background: #28a745">Tasdiqlash va Yuklash</button>
     </div>
 </div>
@@ -53,7 +51,7 @@ async function checkID() {
             alert("ID topilmadi!");
         }
     } catch (e) {
-        alert("Fayllarni yuklashda xato!");
+        alert("Fayl o'qishda xatolik!");
     }
 }
 
@@ -62,34 +60,36 @@ function generateAndDownload() {
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
-    // Siz yuklagan rasm nomi (GitHub-dagi nom bilan bir xil bo'lishi kerak)
-    img.src = 'IMG_20260422_191321.jpg'; 
-    
+    // GitHub'dagi rasm nomingiz bilan bir xil bo'lishi shart!
+    img.src = 'IMG_20260422_191321_972.jpg'; 
+    img.crossOrigin = "anonymous";
+
     img.onload = function() {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         
-        // ISMNI RASMGA YOZISH SOZLAMALARI
-        ctx.font = 'bold 55px Arial'; // Shrif o'lchami
-        ctx.fillStyle = '#1e272e';    // Rangi (to'q kulrang/qora)
+        // Ismni yozish (Sizning shabloningizga moslangan)
+        ctx.font = '500 42px "Segoe UI", Arial'; // Kursdagi kabi shrift
+        ctx.fillStyle = '#2d3436'; 
         ctx.textAlign = 'left';
         
-        // Ismni koordinatalar bo'yicha joylashtirish
-        // 120 - chapdan masofa, 420 - tepadan masofa (o'zgartirishingiz mumkin)
-        ctx.fillText(foundUser['Полное наименование'], 120, 420);
+        // 110 - chapdan masofa, 395 - tepadan masofa
+        ctx.fillText(foundUser['Полное наименование'], 110, 395);
         
-        // Sanani ham yozish (agar kerak bo'lsa)
-        ctx.font = '30px Arial';
-        ctx.fillText("22.04.2026", 120, 250); 
+        // Sanani yozish
+        ctx.font = '18px Arial';
+        ctx.fillText("Apr 22, 2026", 110, 275);
 
-        // Faylni yuklab olish
+        // Yuklab olish
         const link = document.createElement('a');
-        link.download = foundUser['Полное наименование'] + '_Sertifikat.png';
+        link.download = foundUser['Полное наименование'] + '.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
-        alert("Sertifikat yuklanmoqda...");
+    };
+
+    img.onerror = function() {
+        alert("Rasm yuklanmadi! Nomi xato bo'lishi mumkin.");
     };
 }
 </script>
