@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sertifikat Tizimi</title>
+    <title>Sertifikat Yuklash</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
         .verify-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px dashed #28a745; display: none; }
         canvas { display: none; }
     </style>
@@ -18,13 +19,13 @@
 
 <div class="card">
     <h2 style="color: #1a73e8;">Sertifikatni olish</h2>
-    <input type="text" id="studentID" placeholder="ID raqamingizni kiriting">
+    <input type="text" id="studentID" placeholder="ID raqamingiz">
     <button onclick="checkID()">Tekshirish</button>
     
     <div id="verifyBox" class="verify-box">
-        <h3 id="stName" style="margin-bottom: 10px; color: #333;"></h3>
-        <input type="text" id="otp" placeholder="Tasdiqlash kodi">
-        <button onclick="generateAndDownload()" style="background: #28a745">Tasdiqlash va Yuklash</button>
+        <h3 id="stName" style="margin: 0; color: #333;"></h3>
+        <p style="font-size: 14px; color: #666;">Yuklash uchun pastdagi tugmani bosing.</p>
+        <button onclick="generateAndDownload()" style="background: #28a745">Yuklash (PNG)</button>
     </div>
 </div>
 
@@ -51,7 +52,7 @@ async function checkID() {
             alert("ID topilmadi!");
         }
     } catch (e) {
-        alert("Fayl o'qishda xatolik!");
+        alert("Fayllarni yuklashda xato!");
     }
 }
 
@@ -60,7 +61,7 @@ function generateAndDownload() {
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
-    // GitHub'dagi rasm nomingiz bilan bir xil bo'lishi shart!
+    // Siz yuklagan rasm nomi (GitHub-dagi nom bilan bir xil bo'lishi kerak)
     img.src = 'IMG_20260422_191321_972.jpg'; 
     img.crossOrigin = "anonymous";
 
@@ -69,27 +70,27 @@ function generateAndDownload() {
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         
-        // Ismni yozish (Sizning shabloningizga moslangan)
-        ctx.font = '500 42px "Segoe UI", Arial'; // Kursdagi kabi shrift
-        ctx.fillStyle = '#2d3436'; 
+        // 1. ISMNI YOZISH (Chiroyli joylashuv)
+        ctx.font = '500 48px "Segoe UI", Arial'; // Biroz kattaroq va chiroyliroq shrift
+        ctx.fillStyle = '#1e272e'; // Rangi (to'q kulrang)
         ctx.textAlign = 'left';
         
-        // 110 - chapdan masofa, 395 - tepadan masofa
-        ctx.fillText(foundUser['Полное наименование'], 110, 395);
+        // Ismni tepaga surish (395 o'rniga 350 koordinata)
+        // Shunda u Scrimba dizaynidagi bo'sh joyga aniq tushadi.
+        ctx.fillText(foundUser['Полное наименование'], 110, 350);
         
-        // Sanani yozish
-        ctx.font = '18px Arial';
-        ctx.fillText("Apr 22, 2026", 110, 275);
+        // 2. SANANI YOZISH (To'g'ri joylashuv)
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#636e72'; // Biroz ochroq rang
+        
+        // Sanani Scrimba logotipi tagiga tushirish (275 o'rniga 305 koordinata)
+        ctx.fillText("Apr 22, 2026", 110, 305); 
 
-        // Yuklab olish
+        // Faylni yuklab olish
         const link = document.createElement('a');
-        link.download = foundUser['Полное наименование'] + '.png';
+        link.download = foundUser['Полное наименование'] + '_Sertifikat.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
-    };
-
-    img.onerror = function() {
-        alert("Rasm yuklanmadi! Nomi xato bo'lishi mumkin.");
     };
 }
 </script>
