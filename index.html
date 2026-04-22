@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sertifikat Tizimi</title>
+    <title>Sertifikat Yuklash Tizimi</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
         .verify-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; border: 2px dashed #28a745; display: none; }
         canvas { display: none; }
     </style>
@@ -23,7 +24,7 @@
     
     <div id="verifyBox" class="verify-box">
         <h3 id="stName" style="margin: 0; color: #333;"></h3>
-        <p style="font-size: 14px; color: #666; margin-top: 10px;">Ma'lumotlar topildi.</p>
+        <p style="font-size: 14px; color: #666; margin: 10px 0;">ID tasdiqlandi.</p>
         <button onclick="generateAndDownload()" style="background: #28a745">Yuklab olish (PNG)</button>
     </div>
 </div>
@@ -36,7 +37,7 @@ let foundUser = null;
 async function checkID() {
     const idVal = document.getElementById('studentID').value;
     try {
-        const resp = await fetch('ReportStudentList.xlsx'); //
+        const resp = await fetch('ReportStudentList.xlsx');
         const data = await resp.arrayBuffer();
         const wb = XLSX.read(data, {type: 'array'});
         const sheet = wb.Sheets[wb.SheetNames[0]];
@@ -44,13 +45,13 @@ async function checkID() {
         foundUser = rows.find(r => String(r['ID']) === idVal);
 
         if(foundUser) {
-            document.getElementById('stName').innerText = foundUser['Полное наименование']; //
+            document.getElementById('stName').innerText = foundUser['Полное наименование'];
             document.getElementById('verifyBox').style.display = 'block';
         } else {
-            alert("ID topilmadi!");
+            alert("Bunday ID topilmadi!");
         }
     } catch (e) {
-        alert("Excel faylini o'qib bo'lmadi!");
+        alert("Fayllarni yuklashda xatolik yuz berdi!");
     }
 }
 
@@ -59,7 +60,7 @@ function generateAndDownload() {
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
-    // GitHub-dagi rasm nomi
+    // GitHub'dagi rasm nomingiz
     img.src = 'IMG_20260422_191321_972.jpg'; 
     img.crossOrigin = "anonymous";
 
@@ -68,28 +69,27 @@ function generateAndDownload() {
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         
-        // --- ESKI ISMNI BUTUNLAY TOZALASH ---
-        // Bu joy oq bo'lgani uchun oq rang bilan yopamiz
+        // 1. ESKI ISMNI O'CHIRISH (Oq rang bilan yopish)
+        // Farruxjon yozuvi turgan joyni oq to'rtburchak bilan berkitamiz
         ctx.fillStyle = '#ffffff'; 
-        // x=105, y=320, kenglik=520, balandlik=100
-        ctx.fillRect(105, 320, 520, 100); 
+        ctx.fillRect(100, 310, 500, 110); 
 
-        // --- YANGI ISMNI YOZISH ---
-        ctx.font = '500 46px Arial'; 
-        ctx.fillStyle = '#1e272e'; 
+        // 2. YANGI ISMNI YOZISH
+        ctx.font = '500 44px Arial, sans-serif'; 
+        ctx.fillStyle = '#2c3e50'; 
         ctx.textAlign = 'left';
-        // Ismni o'sha tozalangan joyning o'rtasiga yozamiz
-        ctx.fillText(foundUser['Полное наименование'], 110, 375); 
+        // Ismni o'sha bo'shatilgan joyning o'rtasiga yozish
+        ctx.fillText(foundUser['Полное наименование'], 110, 360); 
         
-        // --- SANANI YOZISH ---
-        ctx.font = '22px Arial';
-        ctx.fillStyle = '#636e72';
-        // Sanani logotipdan pastroqqa suramiz
-        ctx.fillText("Apr 22, 2026", 110, 315); 
+        // 3. SANANI YOZISH
+        ctx.font = '18px Arial';
+        ctx.fillStyle = '#7f8c8d';
+        // Sanani logotip tagiga aniq tushirish
+        ctx.fillText("Apr 22, 2026", 110, 305); 
 
-        // Yuklab olish jarayoni
+        // Yuklab olish linkini yaratish
         const link = document.createElement('a');
-        link.download = foundUser['Полное наименование'] + '.png';
+        link.download = foundUser['Полное наименование'] + '_Sertifikat.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     };
